@@ -8,6 +8,8 @@
 	<br></br> 
 	<img alt="Stock Pie Chart" src=${pieUrl} />
 </div>
+<br></br>
+<p align="center"><a href="/increaseInvestment">Increase Investment</a></p>
 </body>
 </html>
 
