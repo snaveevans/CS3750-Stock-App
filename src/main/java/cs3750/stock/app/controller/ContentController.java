@@ -199,7 +199,7 @@ public class ContentController {
 	
 	@SuppressWarnings("unchecked")
 	@RequestMapping("/getStocks")
-	public @ResponseBody Object getStocks(Integer stockId){
+	public @ResponseBody Object getStockById(Integer stockId){
 		   String SQL = "SELECT * FROM stocks WHERE STCK_ID = :STCK_ID";  
 		   SqlParameterSource namedParameters = new MapSqlParameterSource("STCK_ID", Integer.valueOf(stockId));  
 		   Stock stocks = (Stock) jdbc.queryForObject(SQL, namedParameters, new StockMapper());  
@@ -309,10 +309,12 @@ public class ContentController {
 		}
 		
 		boolean enoughLeft = true;
-		while (enoughLeft) {
+		while (enoughLeft) 
+		{
 			enoughLeft = false;
 			
-			for (int i = 0; i < 3; i++) {
+			for (int i = 0; i < 3; i++) 
+			{
 				if (remainder >= price[i]) //if there is enough left over to invest in a stock, invest and set flag to check again
 				{
 					remainder -= price[i];
@@ -321,7 +323,6 @@ public class ContentController {
 					enoughLeft = true;
 				}
 			}
-			
 		}
 		
 		for (int i = 0; i < 3; i++)	//loop through the three stocks
@@ -342,4 +343,97 @@ public class ContentController {
 		System.out.println(remainder);
 	}	
 	
+	public void increaseInvestment(String symbol) {
+		User user = MainModel.getUser();//holds current user
+		Integer userId = user.getUserId();	//holds current user id
+		Transaction[] transactions = {null, null, null};
+		Stock[] stocks = {null, null, null};
+		double[] price = {0,0,0};
+		Integer[] qty = {0,0,0};
+		Integer selectedStockId = getStockBySymbol(symbol).getStck_id();
+		Integer currentStockId;
+		Integer selectedIndex = -1;
+		double remainder = user.getBalance();
+		boolean increased = false;
+		Integer greatestQty = 0;
+		
+		List<Transaction> getTransactions = (List<Transaction>) getTransactionByUserId(user.getUserId());
+		
+		for (int i = 0; i < 3; i++) {	//put the transactions into the arrays and find which index is the one to be increased.
+			transactions[i] = getTransactions.get(i);
+			currentStockId = transactions[i].getStck_id();
+			stocks[i] = (Stock) getStockById(currentStockId);
+			price[i] = stocks[i].getStck_price();
+			qty[i] = transactions[i].getStck_qnty();
+			
+			if (i != selectedIndex) 
+			{
+				if (qty[i] > greatestQty)
+				{
+					greatestQty = qty[i];
+				}
+			}
+			
+			if (currentStockId == selectedStockId) {
+				selectedIndex = i;
+			}
+		}
+		
+		int k = 0;
+		while (!increased && k < greatestQty) {
+			k++;
+			if (remainder < stocks[selectedIndex].getStck_price())
+			{
+				//decrease other stocks
+				for (int i = 0; i < 3; i++) 
+				{
+					if (i != selectedIndex) 
+					{
+						if (qty[i] != 0) {
+							qty[i] -= 1;
+							remainder += price[i];
+						}
+					}
+				}
+			}
+			
+			if (remainder > stocks[selectedIndex].getStck_price())
+			{
+				//increase selected stock
+				qty[selectedIndex]++;
+				remainder -= price[selectedIndex];
+				increased = true;
+			}
+		}
+		
+		if (increased)	//if we were able to increase the selected stock
+		{
+			
+			//RE INVEST THE REMAINING BALANCE
+			boolean enoughLeft = true;
+			while (enoughLeft) {
+				enoughLeft = false;
+				
+				for (int i = 0; i < 3; i++) {
+					if (remainder >= price[i]) //if there is enough left over to invest in a stock, invest and set flag to check again
+					{
+						remainder -= price[i];
+						qty[i]++;
+						enoughLeft = true;
+					}
+				}
+			}
+			//END RE INVEST REMAINING BALANCE
+			
+			//update stock quantities
+			for (int i = 0; i < 3; i++)
+			{
+				updateStockQnty(transactions[i].getTrans_id(), qty[i]);
+			}
+			
+			//update remaining balance
+			updateBalance(userId, remainder);
+		}
+		
+	}
 }
