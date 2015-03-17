@@ -13,10 +13,13 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import cs3750.stock.app.model.IncrementInvestment;
 import cs3750.stock.app.model.Intializer;
 import cs3750.stock.app.model.MainModel;
 import cs3750.stock.app.model.MyYapi;
@@ -341,5 +344,29 @@ public class ContentController {
 		System.out.println("REMAINDER:");
 		System.out.println(remainder);
 	}	
+	
+	@RequestMapping(value="/increaseInvestment", method = RequestMethod.GET)
+	public String viewIncreaseInvestment(Map<String, Object> model) {
+		IncrementInvestment increase = new IncrementInvestment();
+		model.put("increaseInvestmentForm", increase);
+		return "increaseInvestment";
+		
+	}
+	
+	
+	@RequestMapping(value = "/increaseInvestment", method = RequestMethod.POST)
+	public String processIncreaseInvestment(@ModelAttribute("increaseInvestmentForm") IncrementInvestment increase) {
+		
+		//System.out.println(intializer.getSymbol1() + " " + intializer.getSymbol2() + " " + intializer.getSymbol3());
+		String array = increase.getSymbol();
+		//MainModel.setStockArray(array);
+		//MainModel.getUser().setBalance(intializer.getBalance());
+		//new ContentController().invest(intializer.getBalance(), array, jdbc);
+		
+		return "viewstocks";
+		
+	}
+	
+	
 	
 }
