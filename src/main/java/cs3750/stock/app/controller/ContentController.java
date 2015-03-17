@@ -453,7 +453,8 @@ public class ContentController {
 	public String processIncreaseInvestment(@ModelAttribute("increaseInvestmentForm") IncrementInvestment increase) {
 		
 		//System.out.println(intializer.getSymbol1() + " " + intializer.getSymbol2() + " " + intializer.getSymbol3());
-		String array = increase.getSymbol();
+		String symbol = increase.getSymbol();
+		increaseInvestment(symbol);
 		//MainModel.setStockArray(array);
 		//MainModel.getUser().setBalance(intializer.getBalance());
 		//new ContentController().invest(intializer.getBalance(), array, jdbc);
